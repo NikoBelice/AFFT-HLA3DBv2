@@ -1,6 +1,6 @@
 # AFFT-HLA3DBv2
 
-AFFT-HLA3DBv2 is an AlphaFold2 fine-tuning workflow for **peptide–HLA class I (pHLA-I) structure prediction**. The model was fine-tuned using 9-mer peptide/HLA-I structures from HLA3DB, with a dataset cutoff date of **July 1, 2026**.
+AFFT-HLA3DBv2 is an AlphaFold2 fine-tuning workflow for **peptide–HLA class I structure prediction**. The model was fine-tuned using 9-mer peptide/HLA-I structures from HLA3DB, with a dataset cutoff date of **July 1, 2026**.
 
 Fine-tuning was conducted by **Tianjian Liang** and **Ram Pantula**. For questions or issues, please contact **Dr. Nikolaos Sgourakis**.
 
@@ -202,8 +202,6 @@ Benchmark results were additionally stratified by HLA type and peptide-backbone 
 | --- | --- |
 | **A02** | Targets belonging to the A02 supertype |
 | **Δ7-1** | Targets assigned to the Δ7-1 discrete peptide-backbone conformation |
-
-In the HLA3DB structural classification, **Δ7** denotes an anchor class, while **Δ7-1** denotes a recurrent discrete peptide-backbone conformation within that class.
 
 ---
 
