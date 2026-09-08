@@ -67,6 +67,14 @@ https://github.com/google-deepmind/alphafold
 
 Download the AlphaFold parameter archive `alphafold_params_2022-12-06.tar`, extract it, and place the parameter files inside a `params/` directory.
 
+### 3. Install AFFT-HLA3DBv2 checkpoint
+
+Download the checkpoint file from:
+
+https://drive.google.com/file/d/1ef2TMr0uFqFWJQTHf2VIRy8OiaNVZVra/view?usp=drive_link
+
+Place the `.pkl` file inside a `model/` directory
+
 ---
 
 ## Data Preparation
