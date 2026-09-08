@@ -203,6 +203,8 @@ Benchmark results were additionally stratified by HLA type and peptide-backbone 
 | **A02** | Targets belonging to the A02 supertype |
 | **Δ7-1** | Targets assigned to the Δ7-1 discrete peptide-backbone conformation |
 
+![Benchmark results](dscore_accuracy_panel.png)
+
 ---
 
 ## Citation
