@@ -120,7 +120,7 @@ The generated TSV contains the target sequence and the corresponding template-al
 
 ## Fine-Tuning
 
-Fine-tune AlphaFold2 on the peptide–HLA-I training set with the D-score–augmented loss:
+Fine-tune AlphaFold2 on the peptide–HLA-I training set:
 
 ```bash
 python dscore_loss_updatedv3.py \
@@ -166,8 +166,6 @@ python run_predictionv3.py \
     --anchor_class_file ./anchor_class.csv \
     --exact_validation
 ```
-
-> **Note:** `--exact_validation` is intended for validation/evaluation when the corresponding native structures and native alignments are available. For prediction of new structures without native experimental structures, use the **Structure Prediction** workflow above instead.
 
 ---
 
