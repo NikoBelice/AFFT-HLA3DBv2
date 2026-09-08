@@ -1,36 +1,51 @@
 # AFFT-HLA3DBv2
 
-AFFT-HLA3DBv2 is an AlphaFold2 fine-tuning workflow for peptide–HLA class I (pHLA-I) structure prediction. The model was fine-tuned using 9-mer peptide/HLA-I structures from HLA3DB, with a dataset cutoff date of **July 1, 2026**.
+AFFT-HLA3DBv2 is an AlphaFold2 fine-tuning workflow for **peptide–HLA class I (pHLA-I) structure prediction**. The model was fine-tuned using 9-mer peptide/HLA-I structures from HLA3DB, with a dataset cutoff date of **July 1, 2026**.
 
 Fine-tuning was conducted by **Tianjian Liang** and **Ram Pantula**. For questions or issues, please contact **Dr. Nikolaos Sgourakis**.
 
 ## Overview
 
-AFFT-HLA3DBv2 introduces several innovation designed for peptide–HLA-I structure modeling:
+AFFT-HLA3DBv2 introduces several innovations designed for peptide–HLA-I structure modeling:
 
-1. **Combined MHC and peptide sequence similarity for template selection.**
-   - BLOSUM62 similarity scores are calculated separately for the MHC and peptide sequences between each target and candidate template.
-   - MHC and peptide scores are normalized independently using min–max normalization:
+### 1. Combined MHC and peptide sequence similarity for template selection
 
-     `normalized_score = (x - min(x)) / (max(x) - min(x))`
+BLOSUM62 similarity scores are calculated separately for the MHC and peptide sequences between each target and candidate template.
 
-   - The normalized scores are combined as:
+MHC and peptide scores are normalized independently using min–max normalization:
 
-     `total_score = weight_peptide × peptide_score + weight_MHC × MHC_score`
+```text
+normalized_score = (x - min(x)) / (max(x) - min(x))
+```
 
-   - The top four templates are selected for AlphaFold2 input.
+The normalized scores are then combined as:
 
-2. **Prevention of target leakage and redundant template selection.**
-   - The ground-truth structure of the input target is excluded from template selection.
-   - Redundant chain pairs originating from the same PDB entry are also excluded.
+```text
+total_score = weight_peptide × peptide_score + weight_MHC × MHC_score
+```
 
-3. **D-score–augmented fine-tuning loss.**
-   - A peptide backbone D-score term is incorporated into the AlphaFold2 fine-tuning objective.
-   - The total objective is:
+The **top four templates** are selected for AlphaFold2 input.
 
-     `total_loss = AlphaFold_structure_loss + weight_dscore × D-score_loss`
+### 2. Prevention of target leakage and redundant template selection
 
-   - For details of the D-score definition, see the HLA3DB publication: https://www.nature.com/articles/s41467-023-42163-z
+To reduce leakage and redundancy during template selection:
+
+- The ground-truth structure of the input target is excluded from template selection.
+- Redundant chain pairs originating from the same PDB entry are also excluded.
+
+### 3. D-score–augmented fine-tuning loss
+
+A peptide-backbone **D-score** term is incorporated into the AlphaFold2 fine-tuning objective:
+
+```text
+total_loss = AlphaFold_structure_loss + weight_dscore × D-score_loss
+```
+
+For the definition and interpretation of the D-score, see the HLA3DB publication:
+
+https://www.nature.com/articles/s41467-023-42163-z
+
+---
 
 ## Installation
 
@@ -52,13 +67,19 @@ https://github.com/google-deepmind/alphafold
 
 Download the AlphaFold parameter archive `alphafold_params_2022-12-06.tar`, extract it, and place the parameter files inside a `params/` directory.
 
+---
+
 ## Data Preparation
 
 ### 1. Prepare the input Excel file
 
 Input sequences are provided in an Excel file following the format of `Training_setv2.xlsx`.
 
-The workflow uses the target PDB ID, MHC sequence, and peptide sequence to construct the target and search for templates.
+The workflow uses the following information to construct each target and search for templates:
+
+- Target PDB ID
+- MHC sequence
+- Peptide sequence
 
 ### 2. Generate template alignments
 
@@ -72,7 +93,7 @@ python gen_align_MHC_Pep_unique_pdb.py \
     --top-n 4
 ```
 
-This step ranks candidate templates using the combined MHC/peptide sequence-similarity score and selects the top four templates for each target.
+This step ranks candidate templates using the combined MHC/peptide sequence-similarity score and selects the **top four templates** for each target.
 
 ### 3. Generate the training/testing TSV
 
@@ -86,6 +107,8 @@ python generate_training_tsv.py \
 ```
 
 The generated TSV contains the target sequence and the corresponding template-alignment file for each target.
+
+---
 
 ## Fine-Tuning
 
@@ -105,6 +128,8 @@ python dscore_loss_updatedv3.py \
     --save_steps 391
 ```
 
+---
+
 ## Structure Prediction
 
 Use a fine-tuned parameter checkpoint to predict peptide–HLA-I structures:
@@ -116,6 +141,8 @@ python run_prediction.py \
     --outfile_prefix test \
     --output_dir ./output
 ```
+
+---
 
 ## Validation / Model Evaluation
 
@@ -132,19 +159,56 @@ python run_predictionv3.py \
     --exact_validation
 ```
 
-`--exact_validation` is intended for validation/evaluation when the corresponding native structures and native alignments are available. For prediction of new structures without native experimental structures, use the structure-prediction workflow instead.
+> **Note:** `--exact_validation` is intended for validation/evaluation when the corresponding native structures and native alignments are available. For prediction of new structures without native experimental structures, use the **Structure Prediction** workflow above instead.
 
-## Benchmark resutls
-To minimize data leakage, pHLA-I structures deposited after 2022 were held out from fine-tuning and used as an independent test set. AFFT-HLA3DBv2 and the baseline methods—AlphaFold3, Boltz-2, ESMFold2, and AlphaFold2 were evaluated on the same set of targets.
+---
 
-Prediction accuracy was evaluated using the peptide-backbone D-score, following the definition introduced in the HLA3DB study. A prediction was considered structurally accurate when D-score < 1.5 relative to the experimentally determined structure.
+## Benchmark Results
 
-On this benchmark, AFFT-HLA3DBv2 achieved the highest overall success rate among the evaluated methods.
+### Benchmark setup
 
-Results are additionally stratified by HLA type and peptide-backbone conformation:
-- A02: targets belonging to the A02 supertype
-- Δ7-1: targets assigned to the Δ7-1 discrete peptide-backbone conformation
+To minimize data leakage, pHLA-I structures deposited **after 2022** were held out from fine-tuning and used as an independent test set.
+
+AFFT-HLA3DBv2 was benchmarked against the following baseline methods on the **same test set**:
+
+- AlphaFold3
+- Boltz-2
+- ESMFold2
+- AlphaFold2
+
+### Evaluation metric
+
+Prediction accuracy was evaluated using the peptide-backbone **D-score**, following the definition introduced in the HLA3DB study.
+
+A prediction was considered **structurally accurate** when:
+
+```text
+D-score < 1.5
+```
+
+relative to the experimentally determined structure.
+
+### Overall performance
+
+On this benchmark, **AFFT-HLA3DBv2 achieved the highest overall success rate** among the evaluated methods.
+
+Here, **success rate** refers to the percentage of test targets whose predicted peptide backbone has a D-score below 1.5 relative to the experimentally determined structure.
+
+### Subgroup analysis
+
+Benchmark results were additionally stratified by HLA type and peptide-backbone conformation:
+
+| Subgroup | Definition |
+| --- | --- |
+| **A02** | Targets belonging to the A02 supertype |
+| **Δ7-1** | Targets assigned to the Δ7-1 discrete peptide-backbone conformation |
+
+In the HLA3DB structural classification, **Δ7** denotes an anchor class, while **Δ7-1** denotes a recurrent discrete peptide-backbone conformation within that class.
+
+---
 
 ## Citation
 
-If you use AFFT-HLA3DBv2 in your research, please cite the 'Gupta et al. HLA3DB: comprehensive annotation of peptide/HLA complexes enables blind structure prediction of T cell epitopes. Nat Commun 2023 10 Oct. doi: 10.1038/s41467-023-42163-z'
+If you use AFFT-HLA3DBv2 in your research, please cite:
+
+> Gupta S, Nerli S, Kutti Kandy S, Mersky GL, Sgourakis NG. **HLA3DB: comprehensive annotation of peptide/HLA complexes enables blind structure prediction of T cell epitopes.** *Nature Communications*. 2023;14:6349. doi:10.1038/s41467-023-42163-z.
